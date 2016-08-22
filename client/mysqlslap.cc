@@ -2317,7 +2317,7 @@ generate_stats(conclusions *con, option_string *eng, stats *sptr)
 
   // load values to the timing array
   long int* timing_array;
-  timing_array = (long int*)malloc(len * sizeof(long int));
+  timing_array = (long int*)calloc(len, sizeof(long int));
   for (ptr= sptr, ii= 0; ii < iterations; ptr++, ii++)
   {
     timing_array[ii] = ptr->timing;
