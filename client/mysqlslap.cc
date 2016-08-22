@@ -2250,14 +2250,14 @@ print_conclusions(conclusions *con)
   printf("\tAverage number of queries per client: %llu\n", con->avg_rows); 
 
   // print percentiles
-  printf("\tPercentiles:\n"); 
-  printf("\t\t 50: %ld ms\n", con->perc50); 
-  printf("\t\t 60: %ld ms\n", con->perc60); 
-  printf("\t\t 70: %ld ms\n", con->perc70); 
-  printf("\t\t 80: %ld ms\n", con->perc80); 
-  printf("\t\t 90: %ld ms\n", con->perc90); 
-  printf("\t\t 95: %ld ms\n", con->perc95); 
-  printf("\t\t 99: %ld ms\n", con->perc99); 
+  printf("\tPercentiles:\n");
+  printf("\t\t 50: %ld ms\n", con->perc50);
+  printf("\t\t 60: %ld ms\n", con->perc60);
+  printf("\t\t 70: %ld ms\n", con->perc70);
+  printf("\t\t 80: %ld ms\n", con->perc80);
+  printf("\t\t 90: %ld ms\n", con->perc90);
+  printf("\t\t 95: %ld ms\n", con->perc95);
+  printf("\t\t 99: %ld ms\n", con->perc99);
   printf("\n");
 }
 
@@ -2309,14 +2309,13 @@ generate_stats(conclusions *con, option_string *eng, stats *sptr)
     len++;
   }
   con->avg_timing= con->avg_timing/iterations;
-  
+
   if (eng && eng->string)
     con->engine= eng->string;
   else
     con->engine= NULL;
 
   // load values to the timing array
-  // long int timing_array[len];
   long int* timing_array;
   timing_array = (long int*)malloc(len * sizeof(long int));
   for (ptr= sptr, ii= 0; ii < iterations; ptr++, ii++)
