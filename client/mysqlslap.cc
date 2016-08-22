@@ -232,6 +232,13 @@ struct conclusions {
   long int avg_timing;
   long int max_timing;
   long int min_timing;
+  long int perc50;
+  long int perc60;
+  long int perc70;
+  long int perc80;
+  long int perc90;
+  long int perc95;
+  long int perc99;
   uint users;
   unsigned long long avg_rows;
   /* The following are not used yet */
@@ -2241,6 +2248,16 @@ print_conclusions(conclusions *con)
                     con->max_timing / 1000, con->max_timing % 1000);
   printf("\tNumber of clients running queries: %d\n", con->users);
   printf("\tAverage number of queries per client: %llu\n", con->avg_rows); 
+
+  // print percentiles
+  printf("\tPercentiles:\n"); 
+  printf("\t\t 50: %ld ms\n", con->perc50); 
+  printf("\t\t 60: %ld ms\n", con->perc60); 
+  printf("\t\t 70: %ld ms\n", con->perc70); 
+  printf("\t\t 80: %ld ms\n", con->perc80); 
+  printf("\t\t 90: %ld ms\n", con->perc90); 
+  printf("\t\t 95: %ld ms\n", con->perc95); 
+  printf("\t\t 99: %ld ms\n", con->perc99); 
   printf("\n");
 }
 
@@ -2267,6 +2284,7 @@ generate_stats(conclusions *con, option_string *eng, stats *sptr)
 {
   stats *ptr;
   unsigned int x;
+  unsigned int len, ii, kk, temp;
 
   con->min_timing= sptr->timing; 
   con->max_timing= sptr->timing;
@@ -2277,6 +2295,7 @@ generate_stats(conclusions *con, option_string *eng, stats *sptr)
   con->users= sptr->users;
   con->avg_rows= sptr->rows;
   
+  len = 0;
   /* With no next, we know it is the last element that was malloced */
   for (ptr= sptr, x= 0; x < iterations; ptr++, x++)
   {
@@ -2286,13 +2305,50 @@ generate_stats(conclusions *con, option_string *eng, stats *sptr)
       con->max_timing= ptr->timing;
     if (ptr->timing < con->min_timing)
       con->min_timing= ptr->timing;
+    // increment array length
+    len++;
   }
   con->avg_timing= con->avg_timing/iterations;
-
+  
   if (eng && eng->string)
     con->engine= eng->string;
   else
     con->engine= NULL;
+
+  // load values to the timing array
+  // long int timing_array[len];
+  long int* timing_array;
+  timing_array = (long int*)malloc(len * sizeof(long int));
+  for (ptr= sptr, ii= 0; ii < iterations; ptr++, ii++)
+  {
+    timing_array[ii] = ptr->timing;
+  }
+  // compute percentiles using bubblesort. TODO(knodir): use faster sort.
+  for (ii = 0; ii < len; ++ii)
+  {
+      for (kk = ii + 1; kk < len; ++kk)
+      {
+          if (timing_array[ii] > timing_array[kk])
+          {
+              temp = timing_array[ii];
+              timing_array[ii] = timing_array[kk];
+              timing_array[kk] = temp;
+          }
+      }
+  }
+  //  // print sorted array for debugging
+  //  for (ii = 0; ii < len; ++ii)
+  //  {
+  //    printf("%ld,", timing_array[ii]);
+  //  }
+  con->perc50 = timing_array[(int) round(len * 0.5)];
+  con->perc60 = timing_array[(int) round(len * 0.6)];
+  con->perc70 = timing_array[(int) round(len * 0.7)];
+  con->perc80 = timing_array[(int) round(len * 0.8)];
+  con->perc90 = timing_array[(int) round(len * 0.9)];
+  con->perc95 = timing_array[(int) round(len * 0.95)];
+  con->perc99 = timing_array[(int) round(len * 0.99)];
+  free(timing_array);
 }
 
 void
